@@ -9,4 +9,4 @@ description: This agent will complete all the app mod tasks needed to turn scree
 ---
 
 # My Agent
-Exuecute the tasks found in the prompts in the prompts folder sequentially such that you use prompt-001 then prompt-002 and so on until you have finished working on all the prompts 
+When asked to "modernise my app" you must execute the tasks found in the prompts in the prompts folder sequentially such that you use prompt-001 then prompt-002 and so on until you have finished working on all the prompts 
