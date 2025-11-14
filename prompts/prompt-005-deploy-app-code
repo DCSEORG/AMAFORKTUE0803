@@ -9,3 +9,5 @@ Also add the correct terminal command to any deployment scripts you are creating
 
 Make sure the app.zip folder unzips to give app folder that has dll file inside it,
 do not add another folder level in between like publish folder or other.
+
+make it clear to the user somewhere that the URL to view the app is <app url>/Index so they dont just navigate to the root url
