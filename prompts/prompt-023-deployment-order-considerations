@@ -8,3 +8,6 @@ Follow this deployment order including the 30 second wait to ensure each step ha
 6. Import the database schema
 7. Configure database roles for the managed identity
 8. Deploy the application code
+
+Also use uniqueString(resourceGroup().id) to make the resources uniue and do not use timestamps for uniqueness.
+
