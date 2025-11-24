@@ -1,6 +1,7 @@
 create a file called stored-procedures.sql and write the code to create all the 
 stored procedures needed to get data in and out of the database
 such that all app code uses stored procedures and not direct SQL in the app code.
+update the app code if needed to achieve that.
 
 changing the server and database variables at the top to those created earlier in the process.
 If you were not asked to create them then leave them as is.
