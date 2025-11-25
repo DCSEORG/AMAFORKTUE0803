@@ -1,0 +1,86 @@
+@page
+@model ExpenseManagement.Pages.ApproveModel
+@{
+    ViewData["Title"] = "Approve Expenses";
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="error-banner">
+        <strong>⚠️ Error:</strong> @Model.ErrorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="success-banner">
+        <strong>✅</strong> @Model.SuccessMessage
+    </div>
+}
+
+<div class="page-container">
+    <div class="page-header">
+        <h1>Approve Expenses</h1>
+        <p class="subtitle">Pending expenses requiring approval</p>
+    </div>
+
+    <!-- Filter -->
+    <form method="get" class="filter-form">
+        <div class="filter-group">
+            <label for="categoryFilter">Filter:</label>
+            <select id="categoryFilter" name="category" class="form-control" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category.CategoryName" selected="@(Model.CategoryFilter == category.CategoryName)">
+                        @category.CategoryName
+                    </option>
+                }
+            </select>
+        </div>
+    </form>
+
+    <!-- Pending Expenses Table -->
+    <div class="expenses-table-container">
+        <table class="expenses-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Employee</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.PendingExpenses.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="no-data">No pending expenses to approve</td>
+                    </tr>
+                }
+                @foreach (var expense in Model.PendingExpenses)
+                {
+                    <tr>
+                        <td>@expense.FormattedDate</td>
+                        <td>@expense.CategoryName</td>
+                        <td class="amount">@expense.FormattedAmount</td>
+                        <td>@expense.UserName</td>
+                        <td>@expense.Description</td>
+                        <td class="actions">
+                            <form method="post" asp-page-handler="Approve" style="display:inline">
+                                <input type="hidden" name="expenseId" value="@expense.ExpenseId" />
+                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form method="post" asp-page-handler="Reject" style="display:inline">
+                                <input type="hidden" name="expenseId" value="@expense.ExpenseId" />
+                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

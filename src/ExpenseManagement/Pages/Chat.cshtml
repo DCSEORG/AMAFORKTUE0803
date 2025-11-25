@@ -1,0 +1,188 @@
+@page
+@model ExpenseManagement.Pages.ChatModel
+@{
+    ViewData["Title"] = "Chat Assistant";
+}
+
+<div class="chat-page">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>💬 Expense Assistant</h1>
+            <p>Ask me about expenses, approvals, or create new expenses using natural language</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-content">
+                    Hello! I'm your expense management assistant. I can help you:
+                    <ul>
+                        <li>View and filter expenses</li>
+                        <li>Check pending approvals</li>
+                        <li>Create new expenses</li>
+                        <li>Approve or reject expenses</li>
+                        <li>Get expense summaries</li>
+                    </ul>
+                    How can I help you today?
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" class="chat-input" 
+                   placeholder="Ask about expenses..." 
+                   onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" class="btn btn-primary send-btn">Send</button>
+        </div>
+    </div>
+
+    <div class="chat-sidebar">
+        <h3>Quick Actions</h3>
+        <button onclick="askQuestion('Show me all pending expenses')" class="quick-action">
+            📋 View Pending
+        </button>
+        <button onclick="askQuestion('What is the expense summary?')" class="quick-action">
+            📊 Get Summary
+        </button>
+        <button onclick="askQuestion('List all approved expenses')" class="quick-action">
+            ✅ Approved Expenses
+        </button>
+        <button onclick="askQuestion('Show travel expenses')" class="quick-action">
+            ✈️ Travel Expenses
+        </button>
+        <a href="/" class="quick-action back-link">
+            🏠 Back to Dashboard
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    let conversationHistory = [];
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatMessage(text) {
+        // Escape HTML first
+        let formatted = escapeHtml(text);
+        
+        // Convert markdown-style formatting
+        // Bold: **text** -> <strong>text</strong>
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Handle numbered lists
+        const lines = formatted.split('\n');
+        let inOrderedList = false;
+        let inUnorderedList = false;
+        let result = [];
+        
+        for (let line of lines) {
+            const orderedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+            const unorderedMatch = line.match(/^[-*]\s+(.*)$/);
+            
+            if (orderedMatch) {
+                if (!inOrderedList) {
+                    if (inUnorderedList) { result.push('</ul>'); inUnorderedList = false; }
+                    result.push('<ol>');
+                    inOrderedList = true;
+                }
+                result.push(`<li>${orderedMatch[2]}</li>`);
+            } else if (unorderedMatch) {
+                if (!inUnorderedList) {
+                    if (inOrderedList) { result.push('</ol>'); inOrderedList = false; }
+                    result.push('<ul>');
+                    inUnorderedList = true;
+                }
+                result.push(`<li>${unorderedMatch[1]}</li>`);
+            } else {
+                if (inOrderedList) { result.push('</ol>'); inOrderedList = false; }
+                if (inUnorderedList) { result.push('</ul>'); inUnorderedList = false; }
+                result.push(line);
+            }
+        }
+        
+        if (inOrderedList) result.push('</ol>');
+        if (inUnorderedList) result.push('</ul>');
+        
+        // Join with <br> for regular line breaks
+        return result.join('<br>').replace(/<br><ol>/g, '<ol>').replace(/<\/ol><br>/g, '</ol>')
+                                   .replace(/<br><ul>/g, '<ul>').replace(/<\/ul><br>/g, '</ul>')
+                                   .replace(/<br><li>/g, '<li>').replace(/<\/li><br>/g, '</li>');
+    }
+
+    function addMessage(content, isUser) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        if (isUser) {
+            contentDiv.textContent = content;
+        } else {
+            contentDiv.innerHTML = formatMessage(content);
+        }
+        
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'message assistant typing';
+        indicator.id = 'typingIndicator';
+        indicator.innerHTML = '<div class="message-content"><span class="dots">...</span></div>';
+        chatMessages.appendChild(indicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.remove();
+    }
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, true);
+        chatInput.value = '';
+        
+        conversationHistory.push({ role: 'user', content: message });
+        
+        addTypingIndicator();
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: message,
+                    history: conversationHistory.slice(-10) // Last 10 messages for context
+                })
+            });
+
+            removeTypingIndicator();
+            
+            const data = await response.json();
+            addMessage(data.response, false);
+            
+            conversationHistory.push({ role: 'assistant', content: data.response });
+        } catch (error) {
+            removeTypingIndicator();
+            addMessage('Sorry, I encountered an error. Please try again.', false);
+        }
+    }
+
+    function askQuestion(question) {
+        chatInput.value = question;
+        sendMessage();
+    }
+</script>
+}
