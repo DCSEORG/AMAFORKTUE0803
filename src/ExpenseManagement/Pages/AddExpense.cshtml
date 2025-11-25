@@ -1,0 +1,66 @@
+@page
+@model ExpenseManagement.Pages.AddExpenseModel
+@{
+    ViewData["Title"] = "Add Expense";
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="error-banner">
+        <strong>⚠️ Error:</strong> @Model.ErrorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="success-banner">
+        <strong>✅</strong> @Model.SuccessMessage
+    </div>
+}
+
+<div class="page-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1>Add Expense</h1>
+            <p>Submit a new expense for reimbursement</p>
+        </div>
+
+        <form method="post" class="expense-form">
+            <div class="form-group">
+                <label for="amount">Amount (£)</label>
+                <input type="number" id="amount" name="Amount" step="0.01" min="0.01" 
+                       value="@Model.Amount" required class="form-control" placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+                <label for="expenseDate">Date</label>
+                <input type="date" id="expenseDate" name="ExpenseDate" 
+                       value="@Model.ExpenseDate?.ToString("yyyy-MM-dd")" required class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="CategoryId" required class="form-control">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.CategoryId" 
+                                selected="@(Model.CategoryId == category.CategoryId)">
+                            @category.CategoryName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="Description" rows="4" 
+                          class="form-control" placeholder="Enter expense details...">@Model.Description</textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="/" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Submit Expense</button>
+            </div>
+        </form>
+    </div>
+</div>
